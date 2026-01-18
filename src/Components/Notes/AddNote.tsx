@@ -20,7 +20,7 @@ export default function AddNote({ videoId, onNoteAdded }: AddNoteProps) {
       formRef.current?.reset()
       onNoteAdded?.()
     }
-  }, [state.success, onNoteAdded])
+  }, [state.success])
 
   return (
     <form ref={formRef} action={formAction} className="mb-6">
