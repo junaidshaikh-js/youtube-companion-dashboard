@@ -5,9 +5,10 @@ import { addNoteAction } from '@/actions/notes'
 
 interface AddNoteProps {
   videoId: string
+  onNoteAdded?: () => void
 }
 
-export default function AddNote({ videoId }: AddNoteProps) {
+export default function AddNote({ videoId, onNoteAdded }: AddNoteProps) {
   const formRef = useRef<HTMLFormElement>(null)
   const [state, formAction, isPending] = useActionState(addNoteAction, {
     success: false,
@@ -17,8 +18,9 @@ export default function AddNote({ videoId }: AddNoteProps) {
   useEffect(() => {
     if (state.success) {
       formRef.current?.reset()
+      onNoteAdded?.()
     }
-  }, [state.success])
+  }, [state.success, onNoteAdded])
 
   return (
     <form ref={formRef} action={formAction} className="mb-6">

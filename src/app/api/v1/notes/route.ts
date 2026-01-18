@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const videoId = searchParams.get('videoId')
+    const query = searchParams.get('query')
 
     if (!videoId) {
       return NextResponse.json(
@@ -15,7 +16,14 @@ export async function GET(req: NextRequest) {
     }
 
     await connectDB()
-    const notes = await Note.find({ videoId }).sort({ createdAt: -1 })
+
+    // Build filter
+    const filter: Record<string, string | object> = { videoId }
+    if (query) {
+      filter.note = { $regex: query, $options: 'i' }
+    }
+
+    const notes = await Note.find(filter).sort({ createdAt: -1 })
 
     return NextResponse.json({ notes })
   } catch (error) {

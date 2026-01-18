@@ -6,14 +6,18 @@ export interface Note {
   updatedAt: string
 }
 
-export async function getNotes(videoId: string): Promise<Note[]> {
+export async function getNotes(
+  videoId: string,
+  query?: string
+): Promise<Note[]> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/notes?videoId=${videoId}`,
-      {
-        cache: 'no-store',
-      }
-    )
+    let url = `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/notes?videoId=${videoId}`
+    if (query) {
+      url += `&query=${encodeURIComponent(query)}`
+    }
+    const response = await fetch(url, {
+      cache: 'no-store',
+    })
     if (!response.ok) {
       throw new Error('Failed to fetch notes')
     }

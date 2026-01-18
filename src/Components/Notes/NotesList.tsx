@@ -1,16 +1,19 @@
-import { getNotes, Note as NoteType } from '@/apiRequests/notes'
+'use client'
+
+import { Note as NoteType } from '@/apiRequests/notes'
 
 interface NotesListProps {
-  videoId: string
+  notes: NoteType[]
+  isSearching: boolean
 }
 
-export async function NotesList({ videoId }: NotesListProps) {
-  const notes: NoteType[] = await getNotes(videoId)
-
+export function NotesList({ notes, isSearching }: NotesListProps) {
   if (notes.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-gray-300 py-8 text-center text-gray-500">
-        No notes yet. Add your first note above!
+        {isSearching
+          ? 'No notes matching your search found.'
+          : 'No notes yet. Add your first note above!'}
       </div>
     )
   }
