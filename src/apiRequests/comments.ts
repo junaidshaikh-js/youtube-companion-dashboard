@@ -4,6 +4,7 @@ interface Comment {
   text: string
   publishedAt: string
   likeCount: number
+  replyCount: number
 }
 
 export async function getComments(videoId: string): Promise<Comment[]> {
@@ -45,5 +46,19 @@ export async function postComment(
   } catch (error) {
     console.error('Error posting comment:', error)
     return null
+  }
+}
+
+export async function getReplies(parentId: string): Promise<Comment[]> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/replies?parentId=${parentId}`,
+      { cache: 'no-store' }
+    )
+    const data = await response.json()
+    return data.replies || []
+  } catch (error) {
+    console.error('Error fetching replies:', error)
+    return []
   }
 }

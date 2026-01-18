@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
         text: item.snippet.topLevelComment.snippet.textDisplay,
         publishedAt: item.snippet.topLevelComment.snippet.publishedAt,
         likeCount: item.snippet.topLevelComment.snippet.likeCount,
+        replyCount: item.snippet.totalReplyCount || 0,
       })) || []
 
     return NextResponse.json({ comments })
