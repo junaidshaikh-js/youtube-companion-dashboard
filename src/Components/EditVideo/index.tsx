@@ -22,6 +22,22 @@ export default function EditVideo({
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
+  const [prevInitialTitle, setPrevInitialTitle] = useState(initialTitle)
+  const [prevInitialDescription, setPrevInitialDescription] =
+    useState(initialDescription)
+
+  if (
+    initialTitle !== prevInitialTitle ||
+    initialDescription !== prevInitialDescription
+  ) {
+    setPrevInitialTitle(initialTitle)
+    setPrevInitialDescription(initialDescription)
+    if (!isEditing) {
+      setTitle(initialTitle)
+      setDescription(initialDescription)
+    }
+  }
+
   const handleUpdate = async () => {
     setIsSubmitting(true)
     setError(null)
@@ -66,9 +82,7 @@ export default function EditVideo({
     return (
       <div className="mb-6">
         <div className="flex items-center justify-between">
-          <h1 className="h3 text-3xl font-bold text-gray-900">
-            {initialTitle}
-          </h1>
+          <h1 className="h3 text-3xl font-bold text-gray-900">{title}</h1>
           <button
             onClick={() => setIsEditing(true)}
             className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -76,9 +90,7 @@ export default function EditVideo({
             Edit
           </button>
         </div>
-        <p className="mt-4 whitespace-pre-wrap text-gray-600">
-          {initialDescription}
-        </p>
+        <p className="mt-4 whitespace-pre-wrap text-gray-600">{description}</p>
       </div>
     )
   }
