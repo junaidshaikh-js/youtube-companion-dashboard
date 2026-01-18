@@ -6,10 +6,13 @@ import { addCommentAction } from '@/actions/comments'
 
 interface AddCommentProps {
   videoId: string
+  onCommentAdded?: (comment: any) => void
 }
 
-export default function AddComment({ videoId }: AddCommentProps) {
-  const router = useRouter()
+export default function AddComment({
+  videoId,
+  onCommentAdded,
+}: AddCommentProps) {
   const formRef = useRef<HTMLFormElement>(null)
   const [state, formAction, isPending] = useActionState(addCommentAction, {
     success: false,
@@ -17,11 +20,11 @@ export default function AddComment({ videoId }: AddCommentProps) {
   })
 
   useEffect(() => {
-    if (state.success) {
+    if (state.success && state.comment) {
       formRef.current?.reset()
-      router.refresh()
+      onCommentAdded?.(state.comment)
     }
-  }, [state.success, router])
+  }, [state.success, state.comment])
 
   return (
     <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">

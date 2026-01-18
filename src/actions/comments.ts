@@ -1,11 +1,17 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { postComment, postReply, deleteComment } from '@/apiRequests/comments'
+import {
+  Comment,
+  postComment,
+  postReply,
+  deleteComment,
+} from '@/apiRequests/comments'
 
 interface FormState {
   success: boolean
   error: string | null
+  comment?: Comment
 }
 
 export async function addCommentAction(
@@ -25,10 +31,10 @@ export async function addCommentAction(
   const result = await postComment(videoId, text)
 
   if (result) {
-    revalidatePath('/')
     return {
       success: true,
       error: null,
+      comment: result,
     }
   } else {
     return {
@@ -58,6 +64,7 @@ export async function addReplyAction(
     return {
       success: true,
       error: null,
+      comment: result,
     }
   } else {
     return {

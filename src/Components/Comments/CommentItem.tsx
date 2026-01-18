@@ -15,22 +15,17 @@ interface Comment {
 
 interface CommentItemProps {
   comment: Comment
+  onDeleted?: () => void
 }
 
-export default function CommentItem({ comment }: CommentItemProps) {
-  const [isDeleted, setIsDeleted] = useState(false)
-
-  if (isDeleted) {
-    return null
-  }
-
+export default function CommentItem({ comment, onDeleted }: CommentItemProps) {
   return (
     <div className="rounded-lg border border-gray-200 p-4">
       <div className="flex items-start justify-between">
         <div className="font-bold text-gray-900">{comment.author}</div>
         <DeleteComment
           id={comment.id}
-          onSuccess={() => setIsDeleted(true)}
+          onSuccess={() => onDeleted?.()}
           className="text-gray-400"
         />
       </div>

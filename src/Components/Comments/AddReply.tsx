@@ -5,7 +5,7 @@ import { addReplyAction } from '@/actions/comments'
 
 interface AddReplyProps {
   parentId: string
-  onReplyAdded?: () => void
+  onReplyAdded?: (comment: any) => void
 }
 
 export default function AddReply({ parentId, onReplyAdded }: AddReplyProps) {
@@ -16,11 +16,11 @@ export default function AddReply({ parentId, onReplyAdded }: AddReplyProps) {
   })
 
   useEffect(() => {
-    if (state.success) {
+    if (state.success && state.comment) {
       formRef.current?.reset()
-      onReplyAdded?.()
+      onReplyAdded?.(state.comment)
     }
-  }, [state.success, onReplyAdded])
+  }, [state.success, state.comment, onReplyAdded])
 
   return (
     <div className="mt-3 rounded-lg border border-gray-100 bg-white p-3 shadow-sm">

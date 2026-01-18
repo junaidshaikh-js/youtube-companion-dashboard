@@ -45,11 +45,9 @@ export default function Replies({ parentId, initialReplyCount }: RepliesProps) {
     setShowReplies(!showReplies)
   }
 
-  const handleReplyAdded = async () => {
+  const handleReplyAdded = (newReply: Comment) => {
     setLocalReplyCount((prev) => prev + 1)
-    setTimeout(async () => {
-      await fetchReplies()
-    }, 1500)
+    setReplies((prev) => [...prev, newReply])
     setShowReplies(true)
     setShowReplyForm(false)
   }

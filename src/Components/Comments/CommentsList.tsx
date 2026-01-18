@@ -1,13 +1,15 @@
-import { getComments } from '@/apiRequests/comments'
+import { Comment } from '@/apiRequests/comments'
 import CommentItem from './CommentItem'
 
 interface CommentsListProps {
-  videoId: string
+  comments: Comment[]
+  onCommentDeleted: (commentId: string) => void
 }
 
-export async function CommentsList({ videoId }: CommentsListProps) {
-  const comments = await getComments(videoId)
-
+export function CommentsList({
+  comments,
+  onCommentDeleted,
+}: CommentsListProps) {
   return (
     <>
       {comments.length === 0 ? (
@@ -15,7 +17,11 @@ export async function CommentsList({ videoId }: CommentsListProps) {
       ) : (
         <div className="space-y-4">
           {comments.map((comment) => (
-            <CommentItem key={comment.id} comment={comment} />
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              onDeleted={() => onCommentDeleted(comment.id)}
+            />
           ))}
         </div>
       )}
