@@ -13,9 +13,9 @@ export default async function Home() {
 
   return (
     <main className="mx-auto p-8">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-8 overflow-hidden rounded-xl shadow-lg">
-          <YouTubeEmbed videoid={videoData.id} height={450} width={800} />
+      <div className="mx-auto flex max-w-4xl flex-col gap-8">
+        <div className="mx-auto w-fit rounded-xl p-4 shadow-lg">
+          <YouTubeEmbed videoid={videoData.id} width={720} />
         </div>
         <EditVideo
           initialTitle={videoData.title}

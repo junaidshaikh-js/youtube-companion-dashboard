@@ -124,3 +124,52 @@ export async function POST(req: NextRequest) {
     )
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const commentId = searchParams.get('commentId')
+
+    if (!commentId) {
+      return NextResponse.json(
+        { error: 'commentId is required' },
+        { status: 400 }
+      )
+    }
+
+    const accessToken = await getAccessToken()
+
+    const response = await fetch(
+      `${YOUTUBE_DATA_API_URL}/comments?id=${commentId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    )
+
+    if (response.status === 204) {
+      return new NextResponse(null, { status: 204 })
+    }
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Unknown error' }))
+
+      return NextResponse.json(
+        { error: 'Failed to delete comment', details: error },
+        { status: response.status }
+      )
+    }
+
+    return new NextResponse(null, { status: 204 })
+  } catch (error) {
+    console.error('Error deleting comment:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

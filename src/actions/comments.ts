@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { postComment, postReply } from '@/apiRequests/comments'
+import { postComment, postReply, deleteComment } from '@/apiRequests/comments'
 
 interface FormState {
   success: boolean
@@ -63,6 +63,25 @@ export async function addReplyAction(
     return {
       success: false,
       error: 'Failed to post reply. Please try again.',
+    }
+  }
+}
+
+export async function deleteCommentAction(
+  commentId: string
+): Promise<FormState> {
+  const result = await deleteComment(commentId)
+
+  if (result) {
+    revalidatePath('/')
+    return {
+      success: true,
+      error: null,
+    }
+  } else {
+    return {
+      success: false,
+      error: 'Failed to delete comment. Please try again.',
     }
   }
 }

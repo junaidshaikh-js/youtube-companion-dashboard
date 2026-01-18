@@ -85,8 +85,22 @@ export async function postReply(
 
     const data = await response.json()
     return data.reply
-  } catch (error) {
-    console.error('Error posting reply:', error)
+  } catch {
     return null
+  }
+}
+
+export async function deleteComment(commentId: string): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/comments?commentId=${commentId}`,
+      {
+        method: 'DELETE',
+      }
+    )
+    return response.ok || response.status === 204
+  } catch (error) {
+    console.error('Error deleting comment:', error)
+    return false
   }
 }
