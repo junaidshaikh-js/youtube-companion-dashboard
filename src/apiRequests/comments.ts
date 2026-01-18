@@ -62,3 +62,31 @@ export async function getReplies(parentId: string): Promise<Comment[]> {
     return []
   }
 }
+
+export async function postReply(
+  parentId: string,
+  text: string
+): Promise<Comment | null> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/replies`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ parentId, text }),
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to post reply')
+    }
+
+    const data = await response.json()
+    return data.reply
+  } catch (error) {
+    console.error('Error posting reply:', error)
+    return null
+  }
+}
