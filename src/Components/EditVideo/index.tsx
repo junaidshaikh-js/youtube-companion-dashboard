@@ -17,6 +17,8 @@ export default function EditVideo({
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuggesting, setIsSuggesting] = useState(false)
+  const [suggestions, setSuggestions] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
@@ -33,6 +35,31 @@ export default function EditVideo({
       setError('Failed to update video. Please try again.')
     }
     setIsSubmitting(false)
+  }
+
+  const handleSuggestTitles = async () => {
+    setIsSuggesting(true)
+    setError(null)
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/suggestions/title`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description }),
+        }
+      )
+      const data = await response.json()
+      if (data.suggestions) {
+        setSuggestions(data.suggestions)
+      } else {
+        setError('Failed to get suggestions.')
+      }
+    } catch (err) {
+      setError('Error fetching suggestions.')
+    } finally {
+      setIsSuggesting(false)
+    }
   }
 
   if (!isEditing) {
@@ -62,15 +89,54 @@ export default function EditVideo({
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Title
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-gray-700">
+              Title
+            </label>
+            <button
+              onClick={handleSuggestTitles}
+              disabled={isSuggesting}
+              className="flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:text-gray-400"
+              title="Suggest AI Titles"
+            >
+              {isSuggesting ? (
+                <span className="animate-pulse">Thinking...</span>
+              ) : (
+                <>
+                  <span>✨</span>
+                  <span>Suggest Titles</span>
+                </>
+              )}
+            </button>
+          </div>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           />
+
+          {suggestions.length > 0 && (
+            <div className="mt-2 space-y-2">
+              <p className="text-xs font-medium text-gray-500">
+                AI Suggestions:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setTitle(suggestion)
+                      setSuggestions([])
+                    }}
+                    className="rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700 transition-colors hover:bg-blue-100"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
@@ -93,6 +159,7 @@ export default function EditVideo({
               setIsEditing(false)
               setTitle(initialTitle)
               setDescription(initialDescription)
+              setSuggestions([])
               setError(null)
             }}
             disabled={isSubmitting}
