@@ -22,22 +22,6 @@ export default function EditVideo({
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  const [prevInitialTitle, setPrevInitialTitle] = useState(initialTitle)
-  const [prevInitialDescription, setPrevInitialDescription] =
-    useState(initialDescription)
-
-  if (
-    initialTitle !== prevInitialTitle ||
-    initialDescription !== prevInitialDescription
-  ) {
-    setPrevInitialTitle(initialTitle)
-    setPrevInitialDescription(initialDescription)
-    if (!isEditing) {
-      setTitle(initialTitle)
-      setDescription(initialDescription)
-    }
-  }
-
   const handleUpdate = async () => {
     setIsSubmitting(true)
     setError(null)
