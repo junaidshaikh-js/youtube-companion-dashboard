@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAccessToken } from '@/libs/youtubeAuth'
-import { YOUTUBE_DATA_API_URL } from '@/constants'
+import { youtubeClient, YouTubeAPIError } from '@/libs/youtubeClient'
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,33 +13,16 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const accessToken = await getAccessToken()
-
     const params = new URLSearchParams({
       part: 'snippet',
       parentId: parentId,
       maxResults: '50',
     })
 
-    const response = await fetch(
-      `${YOUTUBE_DATA_API_URL}/comments?${params.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        cache: 'no-store',
-      }
-    )
-
-    if (!response.ok) {
-      const error = await response.json()
-      return NextResponse.json(
-        { error: 'Failed to fetch replies', details: error },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await youtubeClient<any>(`/comments?${params.toString()}`, {
+      cache: 'no-store',
+    })
 
     const replies =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,6 +36,12 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ replies })
   } catch (error) {
+    if (error instanceof YouTubeAPIError) {
+      return NextResponse.json(
+        { error: 'Failed to fetch replies', details: error.details },
+        { status: error.status }
+      )
+    }
     console.error('Error fetching replies:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -74,34 +62,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const accessToken = await getAccessToken()
-
-    const response = await fetch(
-      `${YOUTUBE_DATA_API_URL}/comments?part=snippet`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await youtubeClient<any>(`/comments?part=snippet`, {
+      method: 'POST',
+      body: JSON.stringify({
+        snippet: {
+          parentId: parentId,
+          textOriginal: text,
         },
-        body: JSON.stringify({
-          snippet: {
-            parentId: parentId,
-            textOriginal: text,
-          },
-        }),
-      }
-    )
-
-    if (!response.ok) {
-      const error = await response.json()
-      return NextResponse.json(
-        { error: 'Failed to insert reply', details: error },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
+      }),
+    })
 
     const reply = {
       id: data.id,
@@ -113,6 +83,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply }, { status: 201 })
   } catch (error) {
+    if (error instanceof YouTubeAPIError) {
+      return NextResponse.json(
+        { error: 'Failed to insert reply', details: error.details },
+        { status: error.status }
+      )
+    }
     console.error('Error inserting reply:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

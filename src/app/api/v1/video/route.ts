@@ -1,34 +1,15 @@
 import { NextResponse } from 'next/server'
-import { getAccessToken } from '@/libs/youtubeAuth'
-import { YOUTUBE_DATA_API_URL } from '@/constants'
+import { youtubeClient, YouTubeAPIError } from '@/libs/youtubeClient'
 
 export async function GET() {
   try {
-    const accessToken = await getAccessToken()
-
     const params = new URLSearchParams({
       part: 'id,snippet',
       id: '1ynsm05FvM0',
     })
 
-    const response = await fetch(
-      `${YOUTUBE_DATA_API_URL}/videos?${params.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    )
-
-    if (!response.ok) {
-      const error = await response.json()
-      return NextResponse.json(
-        { error: 'Failed to fetch video data', details: error },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await youtubeClient<any>(`/videos?${params.toString()}`)
 
     const responseData = {
       id: data.items[0].id,
@@ -39,6 +20,12 @@ export async function GET() {
 
     return NextResponse.json(responseData)
   } catch (error) {
+    if (error instanceof YouTubeAPIError) {
+      return NextResponse.json(
+        { error: 'Failed to fetch video data', details: error.details },
+        { status: error.status }
+      )
+    }
     console.error('Error fetching video:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -59,28 +46,13 @@ export async function PUT(req: Request) {
       )
     }
 
-    const accessToken = await getAccessToken()
-
     // 1. Fetch the current snippet first.
     // videos.update requires the full snippet object or fields will be deleted.
-    const getResponse = await fetch(
-      `${YOUTUBE_DATA_API_URL}/videos?part=snippet&id=${videoId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const getData = await youtubeClient<any>(
+      `/videos?part=snippet&id=${videoId}`
     )
 
-    if (!getResponse.ok) {
-      const error = await getResponse.json()
-      return NextResponse.json(
-        { error: 'Failed to fetch video for update', details: error },
-        { status: getResponse.status }
-      )
-    }
-
-    const getData = await getResponse.json()
     if (!getData.items || getData.items.length === 0) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 })
     }
@@ -95,30 +67,14 @@ export async function PUT(req: Request) {
     }
 
     // 3. Send the update request
-    const updateResponse = await fetch(
-      `${YOUTUBE_DATA_API_URL}/videos?part=snippet`,
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: videoId,
-          snippet: updatedSnippet,
-        }),
-      }
-    )
-
-    if (!updateResponse.ok) {
-      const error = await updateResponse.json()
-      return NextResponse.json(
-        { error: 'Failed to update video', details: error },
-        { status: updateResponse.status }
-      )
-    }
-
-    const updateData = await updateResponse.json()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData = await youtubeClient<any>(`/videos?part=snippet`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        id: videoId,
+        snippet: updatedSnippet,
+      }),
+    })
 
     return NextResponse.json({
       success: true,
@@ -129,6 +85,12 @@ export async function PUT(req: Request) {
       },
     })
   } catch (error) {
+    if (error instanceof YouTubeAPIError) {
+      return NextResponse.json(
+        { error: 'Failed to update video', details: error.details },
+        { status: error.status }
+      )
+    }
     console.error('Error updating video:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAccessToken } from '@/libs/youtubeAuth'
-import { YOUTUBE_DATA_API_URL } from '@/constants'
+import { youtubeClient, YouTubeAPIError } from '@/libs/youtubeClient'
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,8 +13,6 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const accessToken = await getAccessToken()
-
     const params = new URLSearchParams({
       part: 'snippet',
       videoId: videoId,
@@ -23,24 +20,10 @@ export async function GET(req: NextRequest) {
       order: 'relevance',
     })
 
-    const response = await fetch(
-      `${YOUTUBE_DATA_API_URL}/commentThreads?${params.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await youtubeClient<any>(
+      `/commentThreads?${params.toString()}`
     )
-
-    if (!response.ok) {
-      const error = await response.json()
-      return NextResponse.json(
-        { error: 'Failed to fetch comments', details: error },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
 
     const comments =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,6 +38,12 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ comments })
   } catch (error) {
+    if (error instanceof YouTubeAPIError) {
+      return NextResponse.json(
+        { error: 'Failed to fetch comments', details: error.details },
+        { status: error.status }
+      )
+    }
     console.error('Error fetching comments:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -75,38 +64,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const accessToken = await getAccessToken()
-
-    const response = await fetch(
-      `${YOUTUBE_DATA_API_URL}/commentThreads?part=snippet`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          snippet: {
-            videoId: videoId,
-            topLevelComment: {
-              snippet: {
-                textOriginal: text,
-              },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await youtubeClient<any>(`/commentThreads?part=snippet`, {
+      method: 'POST',
+      body: JSON.stringify({
+        snippet: {
+          videoId: videoId,
+          topLevelComment: {
+            snippet: {
+              textOriginal: text,
             },
           },
-        }),
-      }
-    )
-
-    if (!response.ok) {
-      const error = await response.json()
-      return NextResponse.json(
-        { error: 'Failed to insert comment', details: error },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
+        },
+      }),
+    })
 
     const comment = {
       id: data.id,
@@ -117,6 +88,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ comment }, { status: 201 })
   } catch (error) {
+    if (error instanceof YouTubeAPIError) {
+      return NextResponse.json(
+        { error: 'Failed to insert comment', details: error.details },
+        { status: error.status }
+      )
+    }
     console.error('Error inserting comment:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -137,35 +114,18 @@ export async function DELETE(req: NextRequest) {
       )
     }
 
-    const accessToken = await getAccessToken()
-
-    const response = await fetch(
-      `${YOUTUBE_DATA_API_URL}/comments?id=${commentId}`,
-      {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    )
-
-    if (response.status === 204) {
-      return new NextResponse(null, { status: 204 })
-    }
-
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: 'Unknown error' }))
-
-      return NextResponse.json(
-        { error: 'Failed to delete comment', details: error },
-        { status: response.status }
-      )
-    }
+    await youtubeClient(`/comments?id=${commentId}`, {
+      method: 'DELETE',
+    })
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {
+    if (error instanceof YouTubeAPIError) {
+      return NextResponse.json(
+        { error: 'Failed to delete comment', details: error.details },
+        { status: error.status }
+      )
+    }
     console.error('Error deleting comment:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
