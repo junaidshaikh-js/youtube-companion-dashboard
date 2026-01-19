@@ -1,3 +1,5 @@
+import { apiRequest } from '@/libs/apiClient'
+
 export interface Note {
   _id: string
   videoId: string
@@ -11,17 +13,13 @@ export async function getNotes(
   query?: string
 ): Promise<Note[]> {
   try {
-    let url = `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/notes?videoId=${videoId}`
+    let endpoint = `/notes?videoId=${videoId}`
     if (query) {
-      url += `&query=${encodeURIComponent(query)}`
+      endpoint += `&query=${encodeURIComponent(query)}`
     }
-    const response = await fetch(url, {
+    const data = await apiRequest<{ notes: Note[] }>(endpoint, {
       cache: 'no-store',
     })
-    if (!response.ok) {
-      throw new Error('Failed to fetch notes')
-    }
-    const data = await response.json()
     return data.notes || []
   } catch (error) {
     console.error('Error fetching notes:', error)
@@ -31,17 +29,11 @@ export async function getNotes(
 
 export async function addNote(videoId: string, note: string): Promise<boolean> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/notes`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ videoId, note }),
-      }
-    )
-    return response.ok
+    await apiRequest(`/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ videoId, note }),
+    })
+    return true
   } catch (error) {
     console.error('Error adding note:', error)
     return false
