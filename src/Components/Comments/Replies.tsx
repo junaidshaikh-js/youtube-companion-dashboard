@@ -1,18 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Comment } from '@/types/comment'
 import { getReplies } from '@/apiRequests/comments'
 import AddReply from './AddReply'
 import DeleteComment from './DeleteComment'
-
-interface Comment {
-  id: string
-  author: string
-  text: string
-  publishedAt: string
-  likeCount: number
-  replyCount: number
-}
 
 interface RepliesProps {
   parentId: string

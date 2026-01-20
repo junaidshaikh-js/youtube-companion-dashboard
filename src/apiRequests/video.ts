@@ -1,17 +1,30 @@
 import { apiRequest } from '@/libs/apiClient'
+import { Video } from '@/types/video'
 
-export async function getVideoData() {
+export async function getVideoData(): Promise<Video | null> {
   try {
-    return await apiRequest('/video')
+    return await apiRequest<Video>('/video')
   } catch (error) {
     console.error('Error fetching video:', error)
     return null
   }
 }
 
-export async function updateVideo(title: string, description: string) {
+interface UpdateVideoResponse {
+  success: boolean
+  data: {
+    id: string
+    title: string
+    description: string
+  }
+}
+
+export async function updateVideo(
+  title: string,
+  description: string
+): Promise<UpdateVideoResponse | null> {
   try {
-    return await apiRequest('/video', {
+    return await apiRequest<UpdateVideoResponse>('/video', {
       method: 'PUT',
       body: JSON.stringify({ title, description }),
     })

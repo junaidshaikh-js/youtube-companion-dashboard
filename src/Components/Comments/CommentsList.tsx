@@ -1,4 +1,4 @@
-import { Comment } from '@/apiRequests/comments'
+import { Comment } from '@/types/comment'
 import CommentItem from './CommentItem'
 
 interface CommentsListProps {

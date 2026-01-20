@@ -1,12 +1,12 @@
 'use client'
 
 import { useActionState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { addCommentAction } from '@/actions/comments'
+import { Comment } from '@/types/comment'
 
 interface AddCommentProps {
   videoId: string
-  onCommentAdded?: (comment: any) => void
+  onCommentAdded?: (comment: Comment) => void
 }
 
 export default function AddComment({
