@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import AddComment from '@/Components/AddComment'
 import { CommentsList } from './CommentsList'
 import { CommentsLoading } from './CommentsLoading'
-import { getComments, Comment } from '@/apiRequests/comments'
+import { getComments } from '@/apiRequests/comments'
+import { Comment } from '@/types/comment'
 
 interface CommentsProps {
   videoId: string

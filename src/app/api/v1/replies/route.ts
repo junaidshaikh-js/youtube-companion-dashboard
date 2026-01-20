@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { youtubeClient, YouTubeAPIError } from '@/libs/youtubeClient'
+import { Comment } from '@/types/comment'
+import { YouTubeComment, YouTubeResponse } from '@/types/youtube'
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,19 +21,21 @@ export async function GET(req: NextRequest) {
       maxResults: '50',
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = await youtubeClient<any>(`/comments?${params.toString()}`, {
-      cache: 'no-store',
-    })
+    const data = await youtubeClient<YouTubeResponse<YouTubeComment>>(
+      `/comments?${params.toString()}`,
+      {
+        cache: 'no-store',
+      }
+    )
 
-    const replies =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data.items?.map((item: any) => ({
+    const replies: Comment[] =
+      data.items?.map((item: YouTubeComment) => ({
         id: item.id,
         author: item.snippet.authorDisplayName,
         text: item.snippet.textDisplay,
         publishedAt: item.snippet.publishedAt,
         likeCount: item.snippet.likeCount,
+        replyCount: 0,
       })) || []
 
     return NextResponse.json({ replies })
@@ -62,8 +66,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = await youtubeClient<any>(`/comments?part=snippet`, {
+    const data = await youtubeClient<YouTubeComment>(`/comments?part=snippet`, {
       method: 'POST',
       body: JSON.stringify({
         snippet: {
@@ -73,12 +76,13 @@ export async function POST(req: NextRequest) {
       }),
     })
 
-    const reply = {
+    const reply: Comment = {
       id: data.id,
       author: data.snippet.authorDisplayName,
       text: data.snippet.textDisplay,
       publishedAt: data.snippet.publishedAt,
       likeCount: data.snippet.likeCount,
+      replyCount: 0,
     }
 
     return NextResponse.json({ reply }, { status: 201 })

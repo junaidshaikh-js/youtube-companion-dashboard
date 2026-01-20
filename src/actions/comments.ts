@@ -1,12 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import {
-  Comment,
-  postComment,
-  postReply,
-  deleteComment,
-} from '@/apiRequests/comments'
+import { Comment } from '@/types/comment'
+import { postComment, postReply, deleteComment } from '@/apiRequests/comments'
 
 interface FormState {
   success: boolean
@@ -47,7 +43,11 @@ export async function addCommentAction(
 export async function addReplyAction(
   prevState: FormState,
   formData: FormData
-): Promise<FormState> {
+): Promise<{
+  success: boolean
+  error: string | null
+  comment?: Comment
+}> {
   const parentId = formData.get('parentId') as string
   const text = formData.get('text') as string
 
@@ -74,9 +74,10 @@ export async function addReplyAction(
   }
 }
 
-export async function deleteCommentAction(
-  commentId: string
-): Promise<FormState> {
+export async function deleteCommentAction(commentId: string): Promise<{
+  success: boolean
+  error: string | null
+}> {
   const result = await deleteComment(commentId)
 
   if (result) {

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { youtubeClient, YouTubeAPIError } from '@/libs/youtubeClient'
+import { Comment } from '@/types/comment'
+import { YouTubeCommentThread, YouTubeResponse } from '@/types/youtube'
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,14 +22,12 @@ export async function GET(req: NextRequest) {
       order: 'relevance',
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = await youtubeClient<any>(
+    const data = await youtubeClient<YouTubeResponse<YouTubeCommentThread>>(
       `/commentThreads?${params.toString()}`
     )
 
-    const comments =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data.items?.map((item: any) => ({
+    const comments: Comment[] =
+      data.items?.map((item: YouTubeCommentThread) => ({
         id: item.id,
         author: item.snippet.topLevelComment.snippet.authorDisplayName,
         text: item.snippet.topLevelComment.snippet.textDisplay,
@@ -64,26 +64,30 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = await youtubeClient<any>(`/commentThreads?part=snippet`, {
-      method: 'POST',
-      body: JSON.stringify({
-        snippet: {
-          videoId: videoId,
-          topLevelComment: {
-            snippet: {
-              textOriginal: text,
+    const data = await youtubeClient<YouTubeCommentThread>(
+      `/commentThreads?part=snippet`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          snippet: {
+            videoId: videoId,
+            topLevelComment: {
+              snippet: {
+                textOriginal: text,
+              },
             },
           },
-        },
-      }),
-    })
+        }),
+      }
+    )
 
-    const comment = {
+    const comment: Comment = {
       id: data.id,
       author: data.snippet.topLevelComment.snippet.authorDisplayName,
       text: data.snippet.topLevelComment.snippet.textDisplay,
       publishedAt: data.snippet.topLevelComment.snippet.publishedAt,
+      likeCount: 0,
+      replyCount: 0,
     }
 
     return NextResponse.json({ comment }, { status: 201 })

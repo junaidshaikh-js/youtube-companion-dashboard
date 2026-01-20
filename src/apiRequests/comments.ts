@@ -1,13 +1,6 @@
 import { apiRequest } from '@/libs/apiClient'
 
-export interface Comment {
-  id: string
-  author: string
-  text: string
-  publishedAt: string
-  likeCount: number
-  replyCount: number
-}
+import { Comment } from '@/types/comment'
 
 export async function getComments(videoId: string): Promise<Comment[]> {
   try {

@@ -2,10 +2,11 @@
 
 import { useActionState, useEffect, useRef } from 'react'
 import { addReplyAction } from '@/actions/comments'
+import { Comment } from '@/types/comment'
 
 interface AddReplyProps {
   parentId: string
-  onReplyAdded?: (comment: any) => void
+  onReplyAdded?: (comment: Comment) => void
 }
 
 export default function AddReply({ parentId, onReplyAdded }: AddReplyProps) {
@@ -13,6 +14,7 @@ export default function AddReply({ parentId, onReplyAdded }: AddReplyProps) {
   const [state, formAction, isPending] = useActionState(addReplyAction, {
     success: false,
     error: null,
+    comment: undefined,
   })
 
   useEffect(() => {

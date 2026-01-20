@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { youtubeClient, YouTubeAPIError } from '@/libs/youtubeClient'
+import { Video } from '@/types/video'
 
 export async function GET() {
   try {
@@ -11,7 +12,7 @@ export async function GET() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = await youtubeClient<any>(`/videos?${params.toString()}`)
 
-    const responseData = {
+    const responseData: Video = {
       id: data.items[0].id,
       title: data.items[0].snippet.title,
       description: data.items[0].snippet.description,
